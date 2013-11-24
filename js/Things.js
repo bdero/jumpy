@@ -24,7 +24,7 @@ function Player(x, y) {
     // For debugging
     this.graphics.beginFill(0xff0000, 0.9);
     this.graphics.drawRect(
-	    -this.bitmap.bitmapData.width/2, -10, this.bitmap.bitmapData.width, 10);
+	    -this.bitmap.bitmapData.width/4, -20, this.bitmap.bitmapData.width/2, 10);
     this.graphics.endFill();
 }
 
@@ -62,10 +62,20 @@ Player.prototype.update = function(dt) {
     var width = this.bitmap.bitmapData.width;
 
     // Update collision rect
-    this.collisionRect.setTo(-width/2, -10, width, 10);
+    //this.collisionRect.setTo(-width/4, -20, width/2, 10);
+    this.collisionRect.x = this.x - width/4;
+    this.collisionRect.y = this.y - 20;
+    this.collisionRect.width = width/2;
+    this.collisionRect.height = 10;
 
     // Collision detection
-    if (this.y > 0) this.ySpeed = this.BOUNCE;
+    var colliding = false;
+    if (this.ySpeed > 0)
+	for(var i = 0; i < world.platforms.length; i++)
+	    if (this.collisionRect.intersects(world.platforms[i].collisionRect))
+		colliding = true;
+
+    if (this.y > 0 || colliding) this.ySpeed = this.BOUNCE;
     else this.ySpeed += this.GRAVITY*dt; // Gravity
 
     // Speed limits
@@ -74,7 +84,7 @@ Player.prototype.update = function(dt) {
 
     // Apply position change
     this.x += this.xSpeed*dt;
-    this.y += this.ySpeed*(Math.min(dt, 3));
+    this.y += this.ySpeed*Math.min(dt, 3);
 
     // Graphical flipping
     if (this.xSpeed > this.FRICTION) this.scaleX = 1;
@@ -108,7 +118,7 @@ function Platform(bitmapData, y) {
 
     // For debugging
     this.graphics.beginFill(0xff0000, 0.9);
-    this.graphics.drawRect(10, 10, this.bitmap.bitmapData.width - 20, 10);
+    this.graphics.drawRect(10, 10, this.bitmap.bitmapData.width - 20, 20);
     this.graphics.endFill();
 
     world.platforms.push(this);
@@ -121,7 +131,16 @@ Platform.prototype = new Sprite();
  * Updates the platform's collision rectangle.
  */
 Platform.prototype.update = function() {
-    this.collisionRect.setTo(this.x + 10, this.y + 10, this.bitmap.bitmapData.width - 20, 10);
+    //this.collisionRect.setTo(this.x + 10, this.y + 10, this.bitmap.bitmapData.width - 20, 10);
+    //console.log(this.x, this.y, this.bitmap.bitmapData.width);
+
+
+    // setTo() results in everything being undefined.... bug with IvanK.js?
+    var offset = 10;
+    this.collisionRect.x = this.x + offset;
+    this.collisionRect.y = this.y + offset;
+    this.collisionRect.width = this.bitmap.bitmapData.width - offset*2;
+    this.collisionRect.height = offset*2;
 };
 
 Platform.prototype.die = function() {

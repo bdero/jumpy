@@ -17,18 +17,24 @@ function Player(x, y) {
     this.bitmap = new Bitmap(loader.images.person);
     this.bitmap.x = -this.bitmap.bitmapData.width/2;
     this.bitmap.y = -this.bitmap.bitmapData.height;
-
     this.addChild(this.bitmap);
+
+    this.collisionRect = new Rectangle();
+
+    // For debugging
+    this.graphics.drawRect(
+	    -this.bitmap.bitmapData.width/2, -10, this.bitmap.bitmapData.width, 10);
 }
 
 Player.prototype = new Sprite();
 
-Player.prototype.GRAVITY = 0.1;
+Player.prototype.GRAVITY = 0.4;
+Player.prototype.BOUNCE = -15;
 Player.prototype.ACCEL_X_SPEED = 0.5;
-Player.prototype.FRICTION = 0.3;
+Player.prototype.FRICTION = 0.2;
 
 Player.prototype.MAX_X_SPEED = 12;
-Player.prototype.MAX_Y_SPEED = 10;
+Player.prototype.MAX_Y_SPEED = 20;
 
 /**
  * Update the player movement based on the controller.
@@ -51,10 +57,14 @@ Player.prototype.update = function(dt) {
     else // right
 	this.xSpeed += this.ACCEL_X_SPEED*dt;
 
-    // Gravity
-    this.ySpeed += this.GRAVITY*dt;
+    var width = this.bitmap.bitmapData.width;
+
+    // Update collision rect
+    this.collisionRect.setTo(-width/2, -10, width, 10);
 
     // Collision detection
+    if (this.y > 0) this.ySpeed = this.BOUNCE;
+    else this.ySpeed += this.GRAVITY*dt; // Gravity
 
     // Speed limits
     this.xSpeed = Math.max(-this.MAX_X_SPEED, Math.min(this.MAX_X_SPEED, this.xSpeed));
@@ -62,10 +72,13 @@ Player.prototype.update = function(dt) {
 
     // Apply position change
     this.x += this.xSpeed*dt;
-    //this.y += this.ySpeed*dt;
+    this.y += this.ySpeed*dt;
+
+    // Graphical flipping
+    if (this.xSpeed > this.FRICTION) this.scaleX = 1;
+    else if (this.xSpeed < -this.FRICTION) this.scaleX = -1;
 
     // Loop around sides
-    var width = this.bitmap.bitmapData.width;
     var loopSize = OPTIMAL_WIDTH + width;
     if (this.x < -width/2) this.x += loopSize;
     else if (this.x > OPTIMAL_WIDTH + width/2) this.x -= loopSize;
@@ -84,6 +97,8 @@ function Platform(bitmapData, y) {
     Sprite.call(this);
 
     this.bitmap = new Bitmap(bitmapData);
+    this.addChild(bitmap);
+
     this.x = Math.random()*(OPTIMAL_WIDTH - this.bitmap.bitmapData.width);
     this.y = y;
 

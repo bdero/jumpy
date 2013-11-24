@@ -5,6 +5,14 @@ var loading;
 var MS_FRAME = 1000/60; // Milliseconds per frame
 var OPTIMAL_WIDTH = 800;
 
+// Array extensions
+Array.prototype.removeObject = function(obj) {
+    for (var i = 0; i < this.length; i++)
+	if (this[i] === obj) return this.splice(i, 1);
+
+    return null;
+};
+
 function start() {
     stage = new Stage('c');
 
@@ -28,6 +36,7 @@ function update() {
     } else {
 	if (!world) {
 	    world = new World();
+	    new Platform(loader.images.platform_big, -200);
 	    stage.addChild(world);
 	}
 

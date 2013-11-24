@@ -22,8 +22,10 @@ function Player(x, y) {
     this.collisionRect = new Rectangle();
 
     // For debugging
+    this.graphics.beginFill(0xff0000, 0.9);
     this.graphics.drawRect(
 	    -this.bitmap.bitmapData.width/2, -10, this.bitmap.bitmapData.width, 10);
+    this.graphics.endFill();
 }
 
 Player.prototype = new Sprite();
@@ -72,7 +74,7 @@ Player.prototype.update = function(dt) {
 
     // Apply position change
     this.x += this.xSpeed*dt;
-    this.y += this.ySpeed*dt;
+    this.y += this.ySpeed*(Math.min(dt, 3));
 
     // Graphical flipping
     if (this.xSpeed > this.FRICTION) this.scaleX = 1;
@@ -97,7 +99,7 @@ function Platform(bitmapData, y) {
     Sprite.call(this);
 
     this.bitmap = new Bitmap(bitmapData);
-    this.addChild(bitmap);
+    this.addChild(this.bitmap);
 
     this.x = Math.random()*(OPTIMAL_WIDTH - this.bitmap.bitmapData.width);
     this.y = y;
@@ -105,10 +107,12 @@ function Platform(bitmapData, y) {
     this.collisionRect = new Rectangle();
 
     // For debugging
+    this.graphics.beginFill(0xff0000, 0.9);
     this.graphics.drawRect(10, 10, this.bitmap.bitmapData.width - 20, 10);
+    this.graphics.endFill();
 
     world.platforms.push(this);
-    world.addChild(this);
+    world.platformsSprite.addChild(this);
 }
 
 Platform.prototype = new Sprite();
@@ -118,4 +122,9 @@ Platform.prototype = new Sprite();
  */
 Platform.prototype.update = function() {
     this.collisionRect.setTo(this.x + 10, this.y + 10, this.bitmap.bitmapData.width - 20, 10);
-}
+};
+
+Platform.prototype.die = function() {
+    world.platforms.removeObject(this);
+    world.platformsSprite.removeChild(this);
+};

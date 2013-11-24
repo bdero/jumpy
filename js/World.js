@@ -9,6 +9,9 @@ function World() {
 
     this.controller = new Controller();
 
+    this.platformsSprite = new Sprite();
+    this.addChild(this.platformsSprite);
+
     this.player = new Player(OPTIMAL_WIDTH/2, 0);
     this.addChild(this.player);
 

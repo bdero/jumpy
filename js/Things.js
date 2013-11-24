@@ -12,6 +12,8 @@ function Player(x, y) {
     this.x = x;
     this.y = y;
 
+    this.xSpeed = this.ySpeed = 0;
+
     this.bitmap = new Bitmap(loader.images.person);
     this.bitmap.x = -this.bitmap.bitmapData.width/2;
     this.bitmap.y = -this.bitmap.bitmapData.height;
@@ -20,7 +22,13 @@ function Player(x, y) {
 }
 
 Player.prototype = new Sprite();
-Player.prototype.GRAVITY = 0.09;
+
+Player.prototype.GRAVITY = 0.1;
+Player.prototype.ACCEL_X_SPEED = 0.5;
+Player.prototype.FRICTION = 0.3;
+
+Player.prototype.MAX_X_SPEED = 12;
+Player.prototype.MAX_Y_SPEED = 10;
 
 /**
  * Update the player movement based on the controller.
@@ -28,7 +36,39 @@ Player.prototype.GRAVITY = 0.09;
  * @tparam float dt The delta time multiplier of the current frame.
  */
 Player.prototype.update = function(dt) {
-    
+    // Controller input
+    var left = world.controller.actions.left;
+    var right = world.controller.actions.right;
+
+    // Movement
+    if ((!left && !right) || (left && right)) {
+	// Friction
+	if (this.xSpeed > this.FRICTION) this.xSpeed -= this.FRICTION*dt;
+	else if (this.xSpeed < -this.FRICTION) this.xSpeed +=  this.FRICTION*dt;
+	else this.xSpeed = 0;
+    } else if (left)
+	this.xSpeed -= this.ACCEL_X_SPEED*dt;
+    else // right
+	this.xSpeed += this.ACCEL_X_SPEED*dt;
+
+    // Gravity
+    this.ySpeed += this.GRAVITY*dt;
+
+    // Collision detection
+
+    // Speed limits
+    this.xSpeed = Math.max(-this.MAX_X_SPEED, Math.min(this.MAX_X_SPEED, this.xSpeed));
+    if (this.ySpeed > this.MAX_Y_SPEED) this.ySpeed = this.MAX_Y_SPEED;
+
+    // Apply position change
+    this.x += this.xSpeed*dt;
+    //this.y += this.ySpeed*dt;
+
+    // Loop around sides
+    var width = this.bitmap.bitmapData.width;
+    var loopSize = OPTIMAL_WIDTH + width;
+    if (this.x < -width/2) this.x += loopSize;
+    else if (this.x > OPTIMAL_WIDTH + width/2) this.x -= loopSize;
 };
 
 /**
